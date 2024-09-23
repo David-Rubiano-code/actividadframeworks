@@ -9,7 +9,11 @@ class Category extends Model
 {
     use HasFactory;
     public $table="categories";
-    protected $fillable = array("*");
+    protected $fillable = [
+        "nombre",
+        "descripcion",
+        "foto"
+    ];
 
     public function posts(){
 

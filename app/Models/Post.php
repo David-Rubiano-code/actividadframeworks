@@ -9,7 +9,11 @@ class Post extends Model
 {
     use HasFactory;
     public $table="posts";
-    protected $fillable = array("*");
+    protected $fillable = [
+        "titulo",
+        "contenido",
+        "autor"
+    ];
 
     public function categories(){
 
