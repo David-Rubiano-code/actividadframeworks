@@ -54,7 +54,7 @@ class CategoriesCrontoller extends Controller
         else{
          return response()->json([
              "status"=>Response::HTTP_CONFLICT,
-             "message"=>" Registro de Categoria no obtenido con exito",
+             "message"=>" Registro no encontrado",
              "error"=>true
          ], 
          Response::HTTP_CONFLICT);
