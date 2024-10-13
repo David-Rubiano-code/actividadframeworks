@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use App\Traits\ApiResponse2;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Hash;
 
-class CategoriesCrontoller extends Controller
+class UsersController extends Controller
 {
-    use ApiResponse2;
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $categories= Category::all();
+        $users= User::all();
         return response()->json([
             "status"=>Response::HTTP_OK,
-            "message"=>"Lista de Categorias obtenida con exito",
-            "data"=>$categories
+            "message"=>"Usuarios  obtenidos con exito",
+            "data"=>$users
         ], 
         Response::HTTP_OK
     );
@@ -31,12 +30,14 @@ class CategoriesCrontoller extends Controller
     public function store(Request $request)
     {
         $inputs=$request->input();
-        $respuesta=Category::create($inputs);
+        $inputs['password'] = Hash::make(trim($request->password));
+        $respuesta=User::create($inputs);
         return response()->json([
             "status"=>Response::HTTP_CREATED,
-            "message"=>"Categoria creada con exito",
+            "message"=>"Usuario creado con exito",
             "data"=>$respuesta
-        ], Response::HTTP_CREATED);
+        ], 
+        Response::HTTP_CREATED );
     }
 
     /**
@@ -44,23 +45,7 @@ class CategoriesCrontoller extends Controller
      */
     public function show(string $id)
     {
-        $existeid=Category::find($id);
-        if($existeid){
-         return response()->json([
-             "status"=>Response::HTTP_OK,
-             "message"=>" Registro de Categoria obtenido con exito",
-             "data"=>$existeid
-         ], 
-         Response::HTTP_OK);
-        }
-        else{
-         return response()->json([
-             "status"=>Response::HTTP_CONFLICT,
-             "message"=>" Registro no encontrado",
-             "error"=>true
-         ], 
-         Response::HTTP_CONFLICT);
-        }
+        //
     }
 
     /**
@@ -68,15 +53,16 @@ class CategoriesCrontoller extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $existe=Category::find($id);
+        $existe=User::find($id);
         if (isset($existe)){
-            $existe->nombre=$request->nombre;
-            $existe->descripcion=$request->descripcion;
-            $existe->foto=$request->foto;
+            $existe->firts_name=$request->firts_name;
+            $existe->last_name=$request->last_name;
+            $existe->email=$request->email;
+            $existe->password=Hash::make(trim($request->password));;
             if( $existe->save()){
                 return response()->json([
                     "status"=>Response::HTTP_ACCEPTED,
-                    "message"=>"Categoria actualizada con exito",
+                    "message"=>"Usuario actualizado con exito",
                     "data"=>$existe
                 ], 
                 Response::HTTP_ACCEPTED
@@ -86,7 +72,7 @@ class CategoriesCrontoller extends Controller
                 return response()->json([
                     "status"=>Response::HTTP_CONFLICT,
                     "error"=>true,
-                    "message"=>"Categoria NO actualizada con exito",
+                    "message"=>"Usuario NO actualizado con exito cpn id:".$id,
                 ], 
                 Response::HTTP_CONFLICT
             );
@@ -107,41 +93,33 @@ class CategoriesCrontoller extends Controller
      */
     public function destroy(string $id)
     {
-        $esreal=Category::find($id);
+        $esreal=User::find($id);
         if (isset($esreal)){
-            $res=Category::destroy($id);
+            $res=User::destroy($id);
             if($res){
                 return response()->json([
                     "status"=>Response::HTTP_OK,
-                    "message"=>" Registro de Categoria eliminado con exito",
+                    "message"=>" Registro de Usuario eliminado con exito",
                     "data"=>$esreal
                 ], 
                 Response::HTTP_OK);
             }
             else{
                 return response()->json([
-                    "status"=>Response::HTTP_CONFLICT,
-                    "message"=>" Registro de categoria no eliminado con ID=".$id,
+                    "status"=>Response::HTTP_BAD_REQUEST,
+                    "message"=>" Registro de Usuario no eliminado con ID=".$id,
                     "error"=>true
                 ], 
-                Response::HTTP_CONFLICT);
+                Response::HTTP_BAD_REQUEST);
             }
         }
         else{
             return response()->json([
-                "status"=>Response::HTTP_CONFLICT,
-                "message"=>" Registro de Categoria no existe",
+                "status"=>Response::HTTP_BAD_REQUEST,
+                "message"=>" Registro de Usuario no existe",
                 "error"=>true
             ], 
-            Response::HTTP_CONFLICT);
+            Response::HTTP_BAD_REQUEST);
         }
-    }
-    public function post_de_la_categoria($id){
-        $category= Category::find($id);
-        if(!$category){
-            return $this->errorResponse('categoria no encontrado',404);
-        }
-        $posts=$category->posts;
-        return $this->successResponse($posts,'Post obtenidos de la Categoria');   
     }
 }

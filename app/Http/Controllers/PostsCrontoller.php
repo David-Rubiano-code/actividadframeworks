@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+Use App\Traits\ApiResponse2;
 
 class PostsCrontoller extends Controller
 {
+    use ApiResponse2;
     /**
      * Display a listing of the resource.
      */
@@ -136,4 +139,92 @@ class PostsCrontoller extends Controller
             Response::HTTP_CONFLICT);
         }
     }
+    
+    public function categorias_del_post($id){
+        $post= Post::find($id);
+        if(!$post){
+            return $this->errorResponse('Post no encontrado',404);
+        }
+        $categories=$post->categories;
+        return $this->successResponse($categories,'Categorias obtenidas del post');   
+    }
+
+    public function asignarEnCategorias(Request $req){
+        $postId = $req->input('post_id');
+        $categoryId = $req->input('category_id');
+
+        $post=Post::find($postId);
+        if(!$post){
+
+            return $this->errorResponse('Post no encontrado',404);
+        }
+
+        $category=Category::find($categoryId);
+        if(!$category){
+
+            return $this->errorResponse('Categoria no encontrada',404);
+        }
+
+       /* if($post->categories()->where('post_id',$postId)->exists()){
+            return $this->errorResponse('El post ya se encuentra asignado en esa categoria',400);
+        }*/
+        if($post->categories()->where('category_id', $categoryId)->exists()){
+            return $this->errorResponse('El post ya se encuentra asignado en esa categoria', 400);
+        }
+        
+        $post->categories()->attach($categoryId);
+
+        $data= [
+            'post'=>[
+                "id"=>$post->id,
+                "titulo"=>$post->titulo,
+                "autor"=>$post->autor,
+            ],
+            'category'=>[
+                "id"=>$category->id,
+                "nombre"=>$category->nombre,
+                ]    
+        ];
+        return  $this->successResponse($data,'Post asignado con exito');
+    }
+    //eliminar post de categiria
+    public function eliminarDeCategoria(Request $req){
+        $postId = $req->input('post_id');
+        $categoryId = $req->input('category_id');
+
+        //validar si el post existe
+        $post=Post::find($postId);
+        if(!$post){
+
+            return $this->errorResponse('Post no encontrado',400);
+        }
+        //validar si la categoria existe
+        $category=Category::find($categoryId);
+        if(!$category){
+
+            return $this->errorResponse('Categoria no encontrada',404);
+        }
+        //validar que el post este en la categoria
+        if(!$post->categories()->where('category_id',$categoryId)->exists()){
+            return $this->errorResponse('El post no se encuentra dentro de esta categoria',404);
+        }
+
+        //eliminar el post de la categoria
+        $post->categories()->detach($categoryId);
+
+        //preparar la data de respuesta 
+        $data= [
+            'post'=>[
+                "id"=>$post->id,
+                "titulo"=>$post->titulo,
+                "autor"=>$post->autor,
+            ],
+            'category'=>[
+                "id"=>$category->id,
+                "nombre"=>$category->nombre,
+                ]    
+        ];
+        return  $this->successResponse($data,'Post eliminado de la categoria con exito');
+    }
 }
+
